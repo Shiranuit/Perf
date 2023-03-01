@@ -1,0 +1,20 @@
+{
+  "name": "promise_perf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node index.ts",
+    "build": "tsc",
+    "clean": "touch index.ts && npm run build | grep TSFILE | cut -d' ' -f 2 | xargs rm"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.2"
+  }
+}
