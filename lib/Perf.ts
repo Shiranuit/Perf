@@ -34,37 +34,41 @@ export class Perf {
     Perf.hook.disable();
   }
 
-  public static async trace<T>(func: AsyncFunction<T>, onResult: ResultCallback | undefined): Promise<T | void> {
+  public static async trace<T>(func: Function, onResult: ResultCallback | undefined): Promise<T | void> {
     if (!Perf.enabled) {
       return func();
     }
 
-    let resolve;
-    let reject;
-    const promise = new Promise<T>((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
+    let promise;
 
     const id = Perf.lastId++;
-    
+
     const chrono = new Chrono();
-    Perf.asyncLocalStorage.run({ id, stack: new StackBuilder(), chrono }, () => {
-      chrono.start();
-      func().then(result => {
+    const stack = new StackBuilder<PerfRecord>();
+
+    const store: PerfStorage = {
+      id,
+      stack,
+      chrono,
+      runningPromises: new Set(),
+      runningPromisesInfo: new Map(),
+      resultCallback: () => {
         if (onResult) {
-          const store = Perf.asyncLocalStorage.getStore();
-          if (store) {
-            onResult(store.stack.getRoot());
-          }
+          onResult(stack.getRoot());
         }
-        resolve(result);
-      }).catch(e => {
-        reject(e);
-      });
+      }
+    };
+
+    Perf.asyncLocalStorage.run(store, () => {
+      chrono.start();
+      promise = func();
     });
 
-    return promise;
+    const result = await promise;
+    if (onResult) {
+      onResult(stack.getRoot());
+    }
+    return result;
   }
 
   public static async runWithTag(tag: string, func: Function, ...args: any[]): Promise<any> {

@@ -6,4 +6,7 @@ export type PerfStorage = {
   id: bigint;
   stack: StackBuilder<PerfRecord>;
   chrono: Chrono;
+  resultCallback: Function;
+  runningPromises: Set<number>;
+  runningPromisesInfo: Map<number, string>;
 }

@@ -1,36 +1,33 @@
+import { Logger } from "./Logger";
 import { Perf } from "./lib/Perf";
 
-async function C() {
-    let x = 0;
-  for (let i = 0 ; i < 1000000000; i++) {
+function longRun() {
+  let x = 0;
+  for (let i = 0; i < 1000000000; i++) {
     x += 1;
   }
+  return x;
 }
+
 async function B() {
-  return C();
+
 }
 
 async function A() {
-  await Perf.runWithTag('B1', B);
-  await Perf.runWithTag('B2', B);
+  await B();
 }
 
 async function main() {
-  await Perf.runWithTag('A', A);
-}
-
-async function longFunction() {
-  let x = 0;
-  for (let i = 0 ; i < 10000000000; i++) {
-    x += 1;
-  }
+  A();
+  await A();
+  longRun();
 }
 
 Perf.enable();
-Perf.trace(main, (result) => {
+Perf.trace(() => {
+  return main();
+}, (result) => {
   Perf.disable();
-  console.log(JSON.stringify(result,null,2));
+  Logger.showLogs();
+  console.log('Result:', result);
 });
-
-longFunction();
-
